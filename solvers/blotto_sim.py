@@ -1,9 +1,23 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 import random
-import time
 
 V = [1, 2, 3, 4, 5]
 TOTAL_POINTS = sum(V)
+
 
 def score_game1(a, b):
     pts = 0.0
@@ -13,6 +27,7 @@ def score_game1(a, b):
         elif x == y:
             pts += v / 2.0
     return pts
+
 
 def score_game2_group(players):
     # players is a list of 4 tuples: [cand, p1, p2, p3]
@@ -24,12 +39,13 @@ def score_game2_group(players):
         val = v / len(winners)
         for w in winners:
             castle_pts[w] += val
-            
+
     payout_table = [9.0, 4.0, 2.0, 0.0]
     s0 = castle_pts[0]
     higher = sum(1 for i in range(1, 4) if castle_pts[i] > s0)
     equal = sum(1 for i in range(1, 4) if castle_pts[i] == s0)
     return sum(payout_table[higher : higher + equal + 1]) / (equal + 1)
+
 
 def generate_human_population(n=3000):
     pop = []
@@ -45,12 +61,24 @@ def generate_human_population(n=3000):
 
     # 2. Multiples of 5 (round number human bias)
     fives = [
-        (0, 10, 20, 30, 40), (5, 10, 20, 25, 40), (0, 15, 20, 25, 40),
-        (5, 15, 20, 25, 35), (0, 10, 20, 35, 35), (5, 10, 20, 30, 35),
-        (10, 15, 20, 25, 30), (0, 15, 20, 30, 35), (0, 5, 20, 35, 40),
-        (5, 10, 15, 30, 40), (0, 0, 20, 35, 45), (0, 0, 25, 35, 40),
-        (20, 20, 20, 20, 20), (0, 25, 25, 25, 25), (0, 10, 25, 30, 35),
-        (1, 9, 20, 30, 40), (2, 8, 20, 30, 40), (3, 7, 20, 30, 40)
+        (0, 10, 20, 30, 40),
+        (5, 10, 20, 25, 40),
+        (0, 15, 20, 25, 40),
+        (5, 15, 20, 25, 35),
+        (0, 10, 20, 35, 35),
+        (5, 10, 20, 30, 35),
+        (10, 15, 20, 25, 30),
+        (0, 15, 20, 30, 35),
+        (0, 5, 20, 35, 40),
+        (5, 10, 15, 30, 40),
+        (0, 0, 20, 35, 45),
+        (0, 0, 25, 35, 40),
+        (20, 20, 20, 20, 20),
+        (0, 25, 25, 25, 25),
+        (0, 10, 25, 30, 35),
+        (1, 9, 20, 30, 40),
+        (2, 8, 20, 30, 40),
+        (3, 7, 20, 30, 40),
     ]
     for _ in range(int(n * 0.30)):
         pop.append(random.choice(fives))
@@ -98,12 +126,13 @@ def generate_human_population(n=3000):
 
     return pop
 
+
 pop = generate_human_population(3000)
 print(f"Population size: {len(pop)}")
 # Calculate Castle 0 zeros
 zeros_c1 = sum(1 for p in pop if p[0] == 0) / len(pop)
 zeros_c2 = sum(1 for p in pop if p[1] == 0) / len(pop)
 mean_troops = [sum(p[i] for p in pop) / len(pop) for i in range(5)]
-print(f"Castle 1 zeros: {zeros_c1*100:.1f}%")
-print(f"Castle 2 zeros: {zeros_c2*100:.1f}%")
+print(f"Castle 1 zeros: {zeros_c1 * 100:.1f}%")
+print(f"Castle 2 zeros: {zeros_c2 * 100:.1f}%")
 print(f"Mean troops: {[round(m, 2) for m in mean_troops]}")

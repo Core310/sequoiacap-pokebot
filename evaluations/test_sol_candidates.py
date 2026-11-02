@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 """
 Stress test Sol candidates:
@@ -8,8 +22,8 @@ vs
 Our DP Optimum: (1, 0, 22, 36, 41)
 """
 
-from llm_blotto_study import LLM_POPULATION, score_game1, simulate_game2, V
 from frontier_vs_frontier import FRONTIER_POP
+from llm_blotto_study import LLM_POPULATION, score_game1, simulate_game2
 
 sol_candidates = {
     "Sol A (Neutral Baseline)": (7, 13, 20, 27, 33),
@@ -33,16 +47,30 @@ print("\n=== EXPECTED SCORE VS BROAD LLM POPULATION (Game 1) ===")
 pop_items = list(LLM_POPULATION.items())
 for name, cand in sol_candidates.items():
     ev1 = sum(w * score_game1(cand, opp) for opp, w in LLM_POPULATION.items())
-    wr1 = sum(w for opp, w in LLM_POPULATION.items() if score_game1(cand, opp) > score_game1(opp, cand))
-    print(f"{name:<28} {cand}: EV = {ev1:6.3f} / 15 ({ev1/15*100:5.2f}%) | WinRate = {wr1*100:5.1f}%")
+    wr1 = sum(
+        w
+        for opp, w in LLM_POPULATION.items()
+        if score_game1(cand, opp) > score_game1(opp, cand)
+    )
+    print(
+        f"{name:<28} {cand}: EV = {ev1:6.3f} / 15 ({ev1 / 15 * 100:5.2f}%) | WinRate = {wr1 * 100:5.1f}%"
+    )
 
 print("\n=== EXPECTED SCORE VS FRONTIER LLM POPULATION (Game 1) ===")
 for name, cand in sol_candidates.items():
     ev_f = sum(w * score_game1(cand, opp) for opp, w in FRONTIER_POP.items())
-    wr_f = sum(w for opp, w in FRONTIER_POP.items() if score_game1(cand, opp) > score_game1(opp, cand))
-    print(f"{name:<28} {cand}: EV = {ev_f:6.3f} / 15 ({ev_f/15*100:5.2f}%) | WinRate = {wr_f*100:5.1f}%")
+    wr_f = sum(
+        w
+        for opp, w in FRONTIER_POP.items()
+        if score_game1(cand, opp) > score_game1(opp, cand)
+    )
+    print(
+        f"{name:<28} {cand}: EV = {ev_f:6.3f} / 15 ({ev_f / 15 * 100:5.2f}%) | WinRate = {wr_f * 100:5.1f}%"
+    )
 
 print("\n=== GAME 2 (4-WAY BATTLE) 50,000 TRIALS ===")
 for name, cand in sol_candidates.items():
     ev2, win2, top2 = simulate_game2(cand, pop_items, trials=50000)
-    print(f"{name:<28} {cand}: EV = {ev2:5.3f} pts | 1st Place = {win2*100:5.1f}% | Top 2 = {top2*100:5.1f}%")
+    print(
+        f"{name:<28} {cand}: EV = {ev2:5.3f} pts | 1st Place = {win2 * 100:5.1f}% | Top 2 = {top2 * 100:5.1f}%"
+    )

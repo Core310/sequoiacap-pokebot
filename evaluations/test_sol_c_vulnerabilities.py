@@ -1,11 +1,24 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 """
 Inspect Sol C vulnerabilities and trade-offs.
 Sol C = (1, 14, 2, 39, 44)
 """
 
-from llm_blotto_study import LLM_POPULATION, score_game1, V
-from frontier_vs_frontier import FRONTIER_POP
+from llm_blotto_study import LLM_POPULATION, V, score_game1
 
 sol_c = (1, 14, 2, 39, 44)
 dp_opt = (1, 0, 22, 36, 41)
@@ -20,7 +33,9 @@ for i in range(5):
             w_pts += w * V[i]
         elif sol_c[i] == opp[i]:
             w_pts += w * V[i] * 0.5
-    print(f"Castle {i+1} (Value {V[i]}): {sol_c[i]} soldiers -> {w_pts:.3f} / {V[i]} pts ({w_pts/V[i]*100:.1f}%)")
+    print(
+        f"Castle {i + 1} (Value {V[i]}): {sol_c[i]} soldiers -> {w_pts:.3f} / {V[i]} pts ({w_pts / V[i] * 100:.1f}%)"
+    )
 
 print("\n--- DP OPTIMUM BREAKDOWN BY CASTLE AGAINST BROAD LLM POPULATION ---")
 for i in range(5):
@@ -30,7 +45,9 @@ for i in range(5):
             w_pts += w * V[i]
         elif dp_opt[i] == opp[i]:
             w_pts += w * V[i] * 0.5
-    print(f"Castle {i+1} (Value {V[i]}): {dp_opt[i]} soldiers -> {w_pts:.3f} / {V[i]} pts ({w_pts/V[i]*100:.1f}%)")
+    print(
+        f"Castle {i + 1} (Value {V[i]}): {dp_opt[i]} soldiers -> {w_pts:.3f} / {V[i]} pts ({w_pts / V[i] * 100:.1f}%)"
+    )
 
 # What simple strategies completely dismantle Sol C?
 print("\n--- STRATEGIES THAT EXPLOIT SOL C (1, 14, 2, 39, 44) ---")

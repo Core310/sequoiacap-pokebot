@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 """
 Zero-Knowledge ClearSet:
@@ -25,6 +39,7 @@ V = [1, 2, 3, 4, 5]
 # Notice that against the exact continuous Nash, every castle has the EXACT same marginal return:
 # d/dx [ (3/40) x ] = 3/40 = 0.075 points per soldier!
 
+
 # Prior 2: Flat Dirichlet / Simplex (uniform random 5-tuples summing to 100)
 # Let's sample 100,000 uniform random simplex allocations:
 def generate_simplex_samples(n=100000, seed=42):
@@ -32,8 +47,17 @@ def generate_simplex_samples(n=100000, seed=42):
     samples = []
     for _ in range(n):
         cuts = sorted([random.randint(0, 100) for _ in range(4)])
-        samples.append((cuts[0], cuts[1] - cuts[0], cuts[2] - cuts[1], cuts[3] - cuts[2], 100 - cuts[3]))
+        samples.append(
+            (
+                cuts[0],
+                cuts[1] - cuts[0],
+                cuts[2] - cuts[1],
+                cuts[3] - cuts[2],
+                100 - cuts[3],
+            )
+        )
     return samples
+
 
 simplex_samples = generate_simplex_samples(50000)
 
@@ -45,6 +69,7 @@ for i in range(5):
     vals.sort()
     n = len(vals)
     import bisect
+
     for x in range(101):
         idx_less = bisect.bisect_left(vals, x)
         idx_equal = bisect.bisect_right(vals, x) - idx_less

@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 """
 Detailed comparison:
@@ -6,17 +20,23 @@ Philosophy Beta:  (1, 15, 0, 39, 45) - Sacrifice Castle 3 (3 pts), dominate C1, 
 Sol C:            (1, 14, 2, 39, 44) - Sol's unoptimized variant of Philosophy Beta
 """
 
-from llm_blotto_study import LLM_POPULATION, score_game1, simulate_game2, V
 from frontier_vs_frontier import FRONTIER_POP
+from llm_blotto_study import score_game1
 
 alpha_cand = (1, 0, 22, 36, 41)
 beta_cand = (1, 15, 0, 39, 45)
 sol_c = (1, 14, 2, 39, 44)
 
 print("=== HEAD TO HEAD Payoff Matrix ===")
-print(f"Alpha vs Beta:  {score_game1(alpha_cand, beta_cand):.1f} vs {score_game1(beta_cand, alpha_cand):.1f}")
-print(f"Alpha vs Sol C: {score_game1(alpha_cand, sol_c):.1f} vs {score_game1(sol_c, alpha_cand):.1f}")
-print(f"Beta vs Sol C:  {score_game1(beta_cand, sol_c):.1f} vs {score_game1(sol_c, beta_cand):.1f}")
+print(
+    f"Alpha vs Beta:  {score_game1(alpha_cand, beta_cand):.1f} vs {score_game1(beta_cand, alpha_cand):.1f}"
+)
+print(
+    f"Alpha vs Sol C: {score_game1(alpha_cand, sol_c):.1f} vs {score_game1(sol_c, alpha_cand):.1f}"
+)
+print(
+    f"Beta vs Sol C:  {score_game1(beta_cand, sol_c):.1f} vs {score_game1(sol_c, beta_cand):.1f}"
+)
 
 print("\n=== POINTS EFFICIENCY ANALYSIS ===")
 # In Alpha:
@@ -49,4 +69,6 @@ print(f"Broad LLM Field EV:   Alpha = 12.005 | Beta = 11.238 | Sol C = 10.825")
 ev_alpha_f = sum(w * score_game1(alpha_cand, opp) for opp, w in FRONTIER_POP.items())
 ev_beta_f = sum(w * score_game1(beta_cand, opp) for opp, w in FRONTIER_POP.items())
 ev_solc_f = sum(w * score_game1(sol_c, opp) for opp, w in FRONTIER_POP.items())
-print(f"Frontier Field EV:    Alpha = {ev_alpha_f:.3f} | Beta = {ev_beta_f:.3f} | Sol C = {ev_solc_f:.3f}")
+print(
+    f"Frontier Field EV:    Alpha = {ev_alpha_f:.3f} | Beta = {ev_beta_f:.3f} | Sol C = {ev_solc_f:.3f}"
+)

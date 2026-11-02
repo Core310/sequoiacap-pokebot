@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 """
 Extension of Dagaev et al. (arXiv:2605.22095v1) to the 5-Castle Weighted Colonel Blotto Game
@@ -10,8 +24,6 @@ Models:
 4. LLM Prompt Tier 2: Opponent-Aware ("Opponents are other Frontier LLMs", sacrificing Castle 1 or 1&2)
 5. LLM Prompt Tier 3: Multi-Turn Discussion (2-4 rounds of user-LLM critique, discovering Castle 3 sacrifice or deep over-stacking)
 """
-
-import collections
 
 V = [1, 2, 3, 4, 5]
 
@@ -28,25 +40,23 @@ HUMAN_POOL = {
     (5, 15, 20, 25, 35): 0.05,
     (10, 15, 20, 25, 30): 0.04,
     (7, 13, 20, 27, 33): 0.05,
-
     # Level 3/4 humans: intermediate concentration + non-zero weak castles (~55%)
     # Notice non-zero token troops (1, 2, 3, 4) on weak castles and non-round peaks (22, 23, 32, 36, 37, 42, 43)
     (2, 12, 22, 31, 33): 0.06,
     (3, 13, 21, 29, 34): 0.06,
-    (2, 3, 23, 34, 38):  0.07,
-    (1, 3, 22, 36, 38):  0.07,
-    (3, 14, 3, 37, 43):  0.06,
-    (2, 16, 2, 37, 43):  0.06,
-    (4, 15, 3, 36, 42):  0.06,
+    (2, 3, 23, 34, 38): 0.07,
+    (1, 3, 22, 36, 38): 0.07,
+    (3, 14, 3, 37, 43): 0.06,
+    (2, 16, 2, 37, 43): 0.06,
+    (4, 15, 3, 36, 42): 0.06,
     (2, 13, 22, 28, 35): 0.05,
-    (3, 2, 24, 33, 38):  0.06,
-
+    (3, 2, 24, 33, 38): 0.06,
     # Level 5+ humans: extreme concentration on 2-3 castles (~25%)
-    (0, 0, 25, 35, 40):  0.07,
-    (0, 0, 20, 35, 45):  0.05,
-    (1, 1, 23, 34, 41):  0.05,
-    (0, 0, 0, 48, 52):   0.04,
-    (1, 2, 2, 44, 51):   0.04,
+    (0, 0, 25, 35, 40): 0.07,
+    (0, 0, 20, 35, 45): 0.05,
+    (1, 1, 23, 34, 41): 0.05,
+    (0, 0, 0, 48, 52): 0.04,
+    (1, 2, 2, 44, 51): 0.04,
 }
 
 # LLM Tier 0: Zero-Shot Base Prompt (Appendix B style: JSON first, no CoT)
@@ -98,15 +108,18 @@ LLM_TIER3_MULTITURN = {
     (4, 15, 1, 37, 43): 0.10,
 }
 
+
 def normalize(d):
     s = sum(d.values())
     return {k: v / s for k, v in d.items()}
+
 
 HUMAN_POOL = normalize(HUMAN_POOL)
 LLM_TIER0_ZEROSHOT = normalize(LLM_TIER0_ZEROSHOT)
 LLM_TIER1_COT = normalize(LLM_TIER1_COT)
 LLM_TIER2_FRONTIER = normalize(LLM_TIER2_FRONTIER)
 LLM_TIER3_MULTITURN = normalize(LLM_TIER3_MULTITURN)
+
 
 def score_game1(a, b):
     pts = 0.0
@@ -116,6 +129,7 @@ def score_game1(a, b):
         elif x == y:
             pts += v / 2.0
     return pts
+
 
 def solve_dp_optimal(pop_dist):
     U = []
@@ -159,6 +173,7 @@ def solve_dp_optimal(pop_dist):
     alloc[0] = rem
     return tuple(alloc), dp[4][100], U
 
+
 def build_mixture(w_human, w_t0, w_t1, w_t2, w_t3):
     mix = {}
     for pool, weight in [
@@ -172,13 +187,24 @@ def build_mixture(w_human, w_t0, w_t1, w_t2, w_t3):
             mix[alloc] = mix.get(alloc, 0.0) + weight * p
     return normalize(mix)
 
+
 # Define realistic tournament scenarios varying % Human vs % AI and prompt depth
 SCENARIOS = {
-    "1. Pure Tier 0/1 LLMs (Zero-shot + 1-turn CoT)": build_mixture(0.0, 0.40, 0.60, 0.0, 0.0),
-    "2. Pure Frontier LLMs (Tier 1 + Tier 2 + Tier 3)": build_mixture(0.0, 0.05, 0.35, 0.40, 0.20),
-    "3. Dagaev T3 (50% Human, 50% Tier 0/1 LLM)": build_mixture(0.50, 0.20, 0.30, 0.0, 0.0),
-    "4. Modern AI Contest (20% Human, 80% Mixed LLM)": build_mixture(0.20, 0.15, 0.30, 0.25, 0.10),
-    "5. Sweaty AI Contest (10% Human, 90% Frontier/Iterated)": build_mixture(0.10, 0.05, 0.20, 0.40, 0.25),
+    "1. Pure Tier 0/1 LLMs (Zero-shot + 1-turn CoT)": build_mixture(
+        0.0, 0.40, 0.60, 0.0, 0.0
+    ),
+    "2. Pure Frontier LLMs (Tier 1 + Tier 2 + Tier 3)": build_mixture(
+        0.0, 0.05, 0.35, 0.40, 0.20
+    ),
+    "3. Dagaev T3 (50% Human, 50% Tier 0/1 LLM)": build_mixture(
+        0.50, 0.20, 0.30, 0.0, 0.0
+    ),
+    "4. Modern AI Contest (20% Human, 80% Mixed LLM)": build_mixture(
+        0.20, 0.15, 0.30, 0.25, 0.10
+    ),
+    "5. Sweaty AI Contest (10% Human, 90% Frontier/Iterated)": build_mixture(
+        0.10, 0.05, 0.20, 0.40, 0.25
+    ),
 }
 
 print("=== OPTIMAL ALLOCATIONS PER SCENARIO ===")
@@ -186,7 +212,7 @@ scenario_optima = {}
 for name, pop in SCENARIOS.items():
     opt, ev, _ = solve_dp_optimal(pop)
     scenario_optima[name] = opt
-    print(f"{name:<55} -> Best: {str(opt):<20} EV: {ev:.4f}/15 ({ev/15*100:.2f}%)")
+    print(f"{name:<55} -> Best: {str(opt):<20} EV: {ev:.4f}/15 ({ev / 15 * 100:.2f}%)")
 
 # Now find the globally most robust ("Minimax / Standardized") allocation across ALL scenarios!
 # We solve DP on the meta-mixture and also check worst-case EV across all 5 scenarios.
@@ -197,7 +223,9 @@ for pop in SCENARIOS.values():
 
 meta_opt, meta_ev, U_meta = solve_dp_optimal(meta_pop)
 print(f"\n=== GLOBAL META-OPTIMAL ALLOCATION ACROSS ALL MIXTURES ===")
-print(f"Meta-Optimal Vector: {meta_opt} -> Meta EV: {meta_ev:.4f}/15 ({meta_ev/15*100:.2f}%)")
+print(
+    f"Meta-Optimal Vector: {meta_opt} -> Meta EV: {meta_ev:.4f}/15 ({meta_ev / 15 * 100:.2f}%)"
+)
 
 # Search neighborhood of top candidates to evaluate average EV and worst-case (minimax) EV across all 5 scenarios
 candidates = list(set(scenario_optima.values())) + [
@@ -225,12 +253,15 @@ print("-" * len(header))
 
 results = []
 for cand in candidates:
-    evs = [sum(w * score_game1(cand, b) for b, w in pop.items()) for pop in SCENARIOS.values()]
+    evs = [
+        sum(w * score_game1(cand, b) for b, w in pop.items())
+        for pop in SCENARIOS.values()
+    ]
     mean_ev = sum(evs) / len(evs)
     min_ev = min(evs)
     results.append((mean_ev, min_ev, cand, evs))
 
-results.sort(key=lambda x: x[1], reverse=True) # Sort by Minimax (Worst-Case EV)
+results.sort(key=lambda x: x[1], reverse=True)  # Sort by Minimax (Worst-Case EV)
 for mean_ev, min_ev, cand, evs in results:
     ev_str = " | ".join(f"{e:8.3f}" for e in evs)
     print(f"{str(cand):<20} | {ev_str} | {mean_ev:8.3f} | {min_ev:8.3f}")

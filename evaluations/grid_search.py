@@ -1,10 +1,22 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
-import random
-import time
 
 V = [1, 2, 3, 4, 5]
 
-from test_candidates import generate_diverse_population, eval_game1, eval_game2
+from test_candidates import eval_game1, eval_game2, generate_diverse_population
 
 pop = generate_diverse_population(6000, seed=42)
 

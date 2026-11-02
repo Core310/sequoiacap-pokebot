@@ -1,3 +1,17 @@
+import sys
+from pathlib import Path
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+for _p in [
+    _REPO_ROOT,
+    _REPO_ROOT / "solvers",
+    _REPO_ROOT / "iterated",
+    _REPO_ROOT / "evaluations",
+    _REPO_ROOT / "benchmarks",
+]:
+    if str(_p) not in sys.path:
+        sys.path.insert(0, str(_p))
+
 #!/usr/bin/env python3
 from llm_blotto_study import LLM_POPULATION, expected_score_game1, simulate_game2
 
@@ -22,9 +36,9 @@ scored.sort(key=lambda x: x[0], reverse=True)
 
 print("Top 15 Allocations in Game 1 in neighborhood:")
 for rank, (ev, alloc) in enumerate(scored[:15], 1):
-    print(f"{rank:2d}. {alloc} -> EV1: {ev:.4f} / 15 ({ev/15*100:.2f}%)")
+    print(f"{rank:2d}. {alloc} -> EV1: {ev:.4f} / 15 ({ev / 15 * 100:.2f}%)")
 
 print("\nSimulating Top 5 for Game 2 (50k trials)...")
 for ev1, alloc in scored[:5]:
     ev2, win, top2 = simulate_game2(alloc, pop_items, trials=50000)
-    print(f"{alloc} -> G1 EV: {ev1:.4f} | G2 EV: {ev2:.3f} | G2 Win: {win*100:.1f}%")
+    print(f"{alloc} -> G1 EV: {ev1:.4f} | G2 EV: {ev2:.3f} | G2 Win: {win * 100:.1f}%")
